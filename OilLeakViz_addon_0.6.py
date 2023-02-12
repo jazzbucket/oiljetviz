@@ -1,7 +1,7 @@
 bl_info = {
-    "name": "OilLeakViz",
+    "name": "OilJetViz",
     "author": "Emil K.",
-    "version": (0, 5),
+    "version": (0, 7),
     "blender": (2, 90, 0),
     "location": "3D View > Sidebar > OilLeakViz",
     "description": "Визуализация подводных струй",
@@ -26,6 +26,7 @@ import numpy
 
 def clear_scene():
     bpy.context.space_data.shading.type = 'MATERIAL'
+    bpy.context.space_data.shading.render_pass = 'DIFFUSE_COLOR'
     bpy.context.space_data.overlay.show_floor = False
     bpy.context.space_data.overlay.show_floor = True
     bpy.context.space_data.overlay.show_floor = False
@@ -42,7 +43,7 @@ def clear_scene():
     bpy.context.space_data.overlay.show_wireframes = True
     bpy.context.space_data.overlay.wireframe_threshold = 0
     bpy.context.space_data.overlay.wireframe_opacity = 0.99
-
+    
     bpy.ops.object.select_pattern(pattern="Circle*")
     bpy.ops.object.delete(use_global=False)
     bpy.ops.object.select_pattern(pattern="Cube*")
@@ -86,9 +87,9 @@ def create_2D_grid(grid_name, grid_size, grid_pos, grid_rot, x_sub, y_sub, grid_
         Imported User Defined Functions :
             create_material  : The materials were created and assigned if not exist.
         """
-
-
-
+        
+        
+        
         bpy.ops.mesh.primitive_grid_add(
             size=grid_size, location=grid_pos, rotation=grid_rot,
             x_subdivisions=x_sub, y_subdivisions=y_sub)
@@ -135,44 +136,44 @@ def create_2D_grid(grid_name, grid_size, grid_pos, grid_rot, x_sub, y_sub, grid_
         return
 
 def grid_text(grid_size):
-
+    
     grid_material = ''
     create_2D_grid(grid_name="GRID_Y_Z", grid_size=grid_size, grid_pos=(0, 0, 0),grid_rot=(math.radians(0), math.radians(-90), math.radians(0)),x_sub=11, y_sub=11, grid_material=grid_material)
     create_2D_grid( grid_name="GRID_X_Y", grid_size=grid_size, grid_pos=(0, 0, 0),grid_rot=(math.radians(0), math.radians(0), math.radians(0)),x_sub=11, y_sub=11, grid_material=grid_material)
     create_2D_grid(grid_name="GRID_Z_X", grid_size=grid_size, grid_pos=(0, 0, 0),grid_rot=(math.radians(90), math.radians(0), math.radians(0)),x_sub=11, y_sub=11, grid_material=grid_material)
-
+    
     bpy.ops.object.text_add(radius = grid_size/8.0, enter_editmode=False, align='WORLD', location=(grid_size + grid_size/5.0, 0, 0), scale=(1,1,1))
     bpy.ops.transform.rotate(value=1.5708, orient_axis='X', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False))
     bpy.ops.transform.rotate(value=3.14159, orient_axis='Z', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(False, False, True))
     text = bpy.context.object
     text.data.body = str(grid_size)+"m"
-
+            
     bpy.ops.object.text_add(radius = grid_size/8.0, enter_editmode=False, align='WORLD', location=(0, grid_size, 0), scale=(1,1,1))
     bpy.ops.transform.rotate(value=1.5708, orient_axis='X', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False))
     bpy.ops.transform.rotate(value=1.5708, orient_axis='Z', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(False, False, True))
     text = bpy.context.object
     text.data.body = str(grid_size)+"m"
-
+            
     bpy.ops.object.text_add(radius = grid_size/8.0, enter_editmode=False, align='WORLD', location=(0,0,grid_size), scale=(1,1,1))
     bpy.ops.transform.rotate(value=1.5708, orient_axis='X', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False))
     bpy.ops.transform.rotate(value=1.5708, orient_axis='Z', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(False, False, True))
     text = bpy.context.object
     text.data.body = str(grid_size)+"m"
-
+    
 
 class DeleteContext(bpy.types.Operator):
     bl_idname = "object.run_delete_operator"
     bl_label = "Run Delete Operator"
-
+    
     def execute(self, context):
         clear_scene()
         return {'FINISHED'}
-
-
+        
+        
 class GeometryNodesSetup(bpy.types.Operator):
     bl_idname = "object.run_geonodes_setup"
     bl_label = "Run Geometry Nodes Operator"
-
+    
     def execute(self, context):
         bpy.ops.node.new_geometry_nodes_modifier()
         return {'FINISHED'}
@@ -180,35 +181,35 @@ class GeometryNodesSetup(bpy.types.Operator):
 class RenderBubbles(bpy.types.Operator):
     bl_idname = "object.run_render_bubbles"
     bl_label = "Run Bubbles Operator"
-
+    
     def execute(self, context):
         props = bpy.context.scene.sf_props
-
+        
         clear_scene()
         if(props.selected_file != None):
             filename = props.selected_file
             columns_to_keep = ['z','x', 'y', 'r', 'Phi(rad)', 'N_gas', 'N_oil', 'N_hydrate']
             z_const = 0
             x_const = 1
-            y_const = 2
-            r = 3
-            Phi_rad = 4
+            y_const = 2 
+            r = 3 
+            Phi_rad = 4 
             N_gas = 5
             N_oil = 6
             N_hydrate = 7
 
             df = pd.read_table(filename, sep="\s+", usecols=columns_to_keep)
             data = df.to_numpy()
-
+            
             verts = []
             s = []
             ss = []
             last_row = data[-1]
             grid_size = 1 if (last_row[0]<=1) else 10
-
-
+            
+            
             grid_text(grid_size)
-
+            
             for data_item in data:
                 x,y = sunflower(int(data_item[N_gas]/1000), 1)
                 x_len = len(x)
@@ -254,7 +255,7 @@ class RenderBubbles(bpy.types.Operator):
                     verts.append((x_rotated, y_rotated, z_rotated))
                     s.append(False)
                     ss.append(True)
-
+                
             obj_name = "MyObj"
             mesh_data = bpy.data.meshes.new(obj_name + "_data")
             obj = bpy.data.objects.new(obj_name, mesh_data)
@@ -293,7 +294,7 @@ def makeNewMaterial(name):
     if mat.node_tree:
         node_tree = mat.node_tree
         nodes = node_tree.nodes
-        bsdf = nodes.get("ShaderNodeBsdfPrincipled")
+        bsdf = nodes.get("ShaderNodeBsdfPrincipled") 
     return mat
 
 def draw_file_opener(self, context):
@@ -303,12 +304,12 @@ def draw_file_opener(self, context):
     row = col.row(align=True)
     row.prop(scn.settings, 'file_path', text='directory:')
     row.operator("something.identifier_selector", icon="FILE_FOLDER", text="")
-
+    
 
 class SelectFileProp():
     selected_file = None
-
-
+    
+    
 
 class RenderSettings(PropertyGroup):
     lines = IntProperty(
@@ -334,7 +335,7 @@ class RunFileSelector(bpy.types.Operator, ImportHelper):
         props.selected_file = self.properties.filepath
         print(props.selected_file)
         return {'FINISHED'}
-
+       
 
 
 class ColorCollection(bpy.types.PropertyGroup):
@@ -349,24 +350,24 @@ class ColorCollection(bpy.types.PropertyGroup):
 
 class Settings(PropertyGroup):
     # Capture only body pose if True, otherwise capture hands, face and body
-
-
+   
+    
     color:bpy.props.FloatVectorProperty(name = "myColor",
                                      subtype = "COLOR",
                                      size = 4,
                                      min = 0.0,
                                      max = 1.0
                                      )
-
-
+       
+   
     type_enum: bpy.props.EnumProperty(
-                name = "Тип визуализации",
-                description = "Выбор типа",
-                items=[("T", "Температура", ""),
-                       ("O", "Концентрация нефти", ""),
-                       ("G", "Концентрация газа", ""),
-                       ("H", "Концентрация гидрата", ""),
-                       ("W", "Концентрация воды", "")
+                name = "Type",
+                description = "Choose one type",
+                items=[("T", "Temperature", ""),
+                       ("O", "Oil", ""),
+                       ("G", "Gas", ""),
+                       ("H", "Hydrate", ""),
+                       ("W", "Water", "")
                         ]
                 )
 
@@ -377,20 +378,20 @@ class DebugOperator(bpy.types.Operator):
 
     def execute(self, context):
         #bpy.ops.object.select_all(action='SELECT')
-
+        
         clear_scene()
-
+        
         props = bpy.context.scene.sf_props
         enums = bpy.context.scene.settings
         filename = props.selected_file # "/home/tatyana/Документы/Универ Эмиль/Грант//jet_data.dat"
-
-
+        
+        
         if(props.selected_file != None):
             columns_to_keep = ['z','x', 'y', 'r', 'T', 'Phi(rad)', 'Phi(deg)', 'alfao', 'alfag', 'alfah', 'alfaw']
             z_const = 0
             x_const = 1
-            y_const = 2
-            r_const = 3
+            y_const = 2 
+            r_const = 3 
             T_const = 4
             Phi_rad = 5
             Phi_deg = 6
@@ -400,16 +401,16 @@ class DebugOperator(bpy.types.Operator):
             alfaw_const = 10
             df = pd.read_table(filename, sep="\s+", usecols=columns_to_keep)
             data = df.to_numpy()
-
+            
             last_row = data[-1]
             grid_size = 1 if (last_row[z_const]<=1) else 10
-
+            
             grid_text(grid_size)
-
+        
             i = 0
             for data_item in data:
                 bpy.ops.mesh.primitive_cube_add(size=0.25, enter_editmode=False, align='WORLD', location=(data_item[x_const], data_item[y_const], data_item[z_const]), scale=(1, 1, 1))
-
+            
         return {'FINISHED'}
 
 
@@ -421,20 +422,20 @@ class RunOperator(bpy.types.Operator):
 
     def execute(self, context):
         #bpy.ops.object.select_all(action='SELECT')
-
+        
         clear_scene()
-
+        
         props = bpy.context.scene.sf_props
         enums = bpy.context.scene.settings
         filename = props.selected_file # "/home/tatyana/Документы/Универ Эмиль/Грант//jet_data.dat"
-
-
+        
+        
         if(props.selected_file != None):
             columns_to_keep = ['z','x', 'y', 'r', 'T', 'Phi(rad)', 'Phi(deg)', 'alfao', 'alfag', 'alfah', 'alfaw']
             z_const = 0
             x_const = 1
-            y_const = 2
-            r_const = 3
+            y_const = 2 
+            r_const = 3 
             T_const = 4
             Phi_rad = 5
             Phi_deg = 6
@@ -444,29 +445,29 @@ class RunOperator(bpy.types.Operator):
             alfaw_const = 10
             df = pd.read_table(filename, sep="\s+", usecols=columns_to_keep)
             data = df.to_numpy()
-
+            
             last_row = data[-1]
             grid_size = 1 if (last_row[z_const]<=1) else 10
-
+            
             grid_text(grid_size)
-
+        
             i = 0
             for data_item in data:
                 bpy.ops.mesh.primitive_circle_add(radius=data_item[r_const], fill_type='NGON', enter_editmode=False, align='WORLD', location=(data_item[x_const], data_item[y_const], data_item[z_const]), scale=(1, 1, 1))
                 radius = math.radians(90 - data_item[Phi_deg])
                 x_radians = (math.pi/2) - data_item[Phi_rad]
-
+                
                 bpy.context.active_object.rotation_euler = (-x_radians, 0, 0)
                 #bpy.ops.transform.rotate(value=radius, orient_axis='X', orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL',  mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
-
-
+                
+                
                 name = "Material-" + str(i)
                 temperature = data_item[T_const]
                 oil = data_item[alfao_const]
                 gas = data_item[alfag_const]
                 hydrate = data_item[alfah_const]
                 water = data_item[alfao_const]
-
+                
                 mat = makeNewMaterial(name)
                 bpy.context.active_object.data.materials.append(mat)
                 if(enums.type_enum == "T"):
@@ -479,9 +480,9 @@ class RunOperator(bpy.types.Operator):
                     bpy.data.materials[name].node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0, hydrate, 0, 1)
                 if(enums.type_enum == "W"):
                     bpy.data.materials[name].node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0, water, 0, 1)
-
+                
                 i += 1
-
+            
         return {'FINISHED'}
 
 
@@ -506,6 +507,9 @@ class MessageBox(bpy.types.Operator):
         self.layout.label(text=self.message)
 
 
+
+
+
 class OilLeakPanel(bpy.types.Panel):
     bl_label = "OilLeakViz"
     bl_category = "OilLeakViz"
@@ -513,60 +517,60 @@ class OilLeakPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Визуализация подводных струй"
-
+    
+    
+    
+    
 
     def draw(self, context):
         props = context.scene.settings
         props2 = context.scene.sf_props
         layout = self.layout
         obj = context.object
+        
         row = layout.row()
         settings = context.scene.settings
-        layout.label(text="Имя файла: {}".format('Не выбран файл' if (props2.selected_file==None) else props2.selected_file.split('/')[-1]))
+        layout.label(text="File: {}".format('No file' if (props2.selected_file==None) else props2.selected_file.split('/')[-1]))
         row = layout.row()
-        row.operator(RunFileSelector.bl_idname, text="Выбрать файл")
+        row.operator(RunFileSelector.bl_idname, text="Choose file")
         layout.prop(props, "type_enum")
         row = layout.row()
-        row.operator(RunOperator.bl_idname, text="Создать блинчики")
+        row.operator(RunOperator.bl_idname, text="Make boundary model")
+        #row = layout.row()
+        #row.operator(DebugOperator.bl_idname, text="Debug")
         row = layout.row()
-        row.operator(DebugOperator.bl_idname, text="Debug")
-        row = layout.row()
-        row.operator(RenderBubbles.bl_idname, text="Создать пузырьки")
+        row.operator(RenderBubbles.bl_idname, text="Make volumentric model")
         row = layout.row()
         #row.operator(GeometryNodesSetup.bl_idname, text="Визуализация ")
         row = layout.row()
-        row.operator(DeleteContext.bl_idname, text="Очистить сцену")
+        row.operator(DeleteContext.bl_idname, text="Clear scene")
         row = layout.row()
-        row.label(text="Температурная шкала")
+        row.label(text="Temperature scale")
         row = layout.row()
-
+        
         r = layout.row(align=True)
         for idx, item in enumerate(context.scene.color_collection, start=1):
-            row.prop(item, "active", icon_value=item.icon, icon_only=True)
+            row.prop(item, "active", icon_value=item.icon)
             if item.active == True:
                 active_item = item
         row = layout.row(align=True)
         for i in range(0, 11):
             row.label(text=str(i*10))
-
+        
         row = layout.row()
-        row.label(text="Шкала концентрации")
+        row.label(text="Concentration scale")
         row = layout.row()
-
+        
         r = layout.row(align=True)
         for idx, item in enumerate(context.scene.color_collection_2, start=1):
-            r.prop(item, "active", icon_value=item.icon, icon_only=True)
+            r.prop(item, "active", icon_value=item.icon)
             if item.active == True:
                 active_item = item
         row = layout.row(align=True)
         for i in range(0, 11):
             row.label(text=str(i*10))
-
-
-
-
-
-
+    
+    
 
 
 _classes = [
@@ -596,7 +600,7 @@ color_palette_temperature = [
     (0.8, 0, 0.2, 1),
     (0.9, 0, 0.1, 1),
     (1, 0, 0, 1)]
-
+    
 color_palette_percent = [
     (0, 0, 0, 1),
     (0, 0.1, 0, 1),
@@ -618,57 +622,18 @@ def register():
     bpy.types.Scene.render_settings = PointerProperty(type=RenderSettings)
     bpy.types.Scene.color_collection = bpy.props.CollectionProperty(type=ColorCollection)
     bpy.types.Scene.color_collection_2 = bpy.props.CollectionProperty(type=ColorCollection)
-
-    # clear the collection
-    if hasattr(bpy.context.scene, "color_collection"):
-        bpy.context.scene.color_collection.clear()
-    if hasattr(bpy.context.scene, "color_collection_2"):
-        bpy.context.scene.color_collection_2.clear()
-
-    # generate colors and icons
-    pcoll = bpy.utils.previews.new()
-
-    size = 64, 64
-    for i, color in enumerate(color_palette_temperature):
-
-        color_name = f"Color{i}"
-        pixels = [*color] * size[0] * size[1]
-        icon = pcoll.new(color_name) # name has to be unique!
-        icon.icon_size = size
-        icon.is_icon_custom = True
-        icon.icon_pixels_float = pixels
-
-        # add the item to the collection
-        color_item = bpy.context.scene.color_collection.add()
-        color_item.name = color_name
-        color_item.color = color
-        color_item.icon = pcoll[color_name].icon_id
-
-    for i, color in enumerate(color_palette_percent):
-
-        color_name = f"Colour{i}"
-        pixels = [*color] * size[0] * size[1]
-        icon = pcoll.new(color_name) # name has to be unique!
-        icon.icon_size = size
-        icon.is_icon_custom = True
-        icon.icon_pixels_float = pixels
-
-        # add the item to the collection
-        color_item = bpy.context.scene.color_collection_2.add()
-        color_item.name = color_name
-        color_item.color = color
-        color_item.icon = pcoll[color_name].icon_id
-
-
-
-
+    
+    
+        
+        
+    
+        
 
 
 def unregister():
     for c in _classes: unregister_class(c)
     del bpy.types.Scene.settings
     del bpy.types.Scene.sf_props
-    del bpy.types.Scene.render_props
     del bpy.types.Scene.color_collection
     del bpy.types.Scene.color_collection_2
     bpy.utils.previews.remove()
