@@ -17,8 +17,8 @@ Install **python 3** and **pip** on your system and addon will fetch **pandas** 
 
 **LINUX**
 
-Open Blender (2.9 and higher) with your main Python environment with
+Go to [Releases](https://github.com/jazzbucket/oiljetviz/releases) and grab latest version. Open Blender (2.9 and higher) with your main Python environment with
 ```
 PYTHONPATH=/usr/lib/python blender --python-use-system-env 
 ```
-then go to **Scripting** tab, open .py file and click Launch (Play icon)
+then go to **Edit-Preferences-Add-ons** tab, click **Install** and navigate to .zip file. Congratulations, you have it installed!
