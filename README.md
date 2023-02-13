@@ -1,6 +1,8 @@
 # oiljetviz
 Underwater oil jet visualization
 
+<a href= ""><img src="https://github.com/jazzbucket/oiljetviz/blob/main/figure_6.png"></a>
+
 **STILL IN DEVELOPMENT, NOT READY FOR EVERYDAY USE!**
 
 **В ПРОЦЕССЕ РАЗРАБОТКИ, НЕ ГОТОВО К ИСПОЛЬЗОВАНИЮ!**
